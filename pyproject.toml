@@ -1,0 +1,25 @@
+[project]
+name = "sveda-python-sdk"
+version = "0.1.0"
+description = "Python SDK for the Sveda AI sidecar HTTP API"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [
+    { name = "Neresson" },
+]
+keywords = ["sveda", "ai", "copilot", "sdk", "client"]
+dependencies = [
+    "httpx>=0.27",
+]
+
+[project.urls]
+Homepage = "https://github.com/neresson/sveda-python-sdk"
+Repository = "https://github.com/neresson/sveda-python-sdk"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
