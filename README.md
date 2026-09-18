@@ -1,6 +1,8 @@
 # sveda-python-sdk
 
-Python SDK for the Sveda AI sidecar HTTP API and host MCP integration.
+Python SDK for the [Sveda](https://sveda.dev) sidecar HTTP API and host MCP integration.
+
+Docs: [sveda.dev/docs/hosts/python](https://sveda.dev/docs/hosts/python)
 
 PyPI: `sveda-python-sdk` (import `sveda`)
 

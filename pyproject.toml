@@ -1,6 +1,6 @@
 [project]
 name = "sveda-python-sdk"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python SDK for the Sveda AI sidecar HTTP API"
 readme = "README.md"
 license = { text = "MIT" }
@@ -14,8 +14,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/neresson/sveda-python-sdk"
+Homepage = "https://sveda.dev/docs/hosts/python"
+Documentation = "https://sveda.dev/docs/hosts/python"
 Repository = "https://github.com/neresson/sveda-python-sdk"
+Issues = "https://github.com/neresson/sveda-python-sdk/issues"
 
 [build-system]
 requires = ["setuptools>=68"]
