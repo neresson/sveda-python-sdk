@@ -1,14 +1,14 @@
 [project]
 name = "sveda-python-sdk"
-version = "0.1.1"
-description = "Python SDK for the Sveda AI sidecar HTTP API"
+version = "0.1.2"
+description = "Embed a Sveda AI agent from Python (Flask, Django, FastAPI). https://sveda.dev/docs/hosts/python"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11"
 authors = [
     { name = "Neresson" },
 ]
-keywords = ["sveda", "ai", "copilot", "sdk", "client"]
+keywords = ["sveda", "ai", "agent", "copilot", "sdk", "flask", "django", "fastapi"]
 dependencies = [
     "httpx>=0.27",
 ]
