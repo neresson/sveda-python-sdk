@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sveda._version import __version__
-from sveda.host.manager import HostManager
 from sveda.host.mcp_handler import _to_mcp_tool
+
+if TYPE_CHECKING:
+    from sveda.host.manager import HostManager
 
 HOST_MANIFEST_SCHEMA = "sveda.host/v1"
 
