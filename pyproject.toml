@@ -1,6 +1,6 @@
 [project]
 name = "sveda-python-sdk"
-version = "0.5.2"
+version = "0.5.3"
 description = "Embed a Sveda AI agent from Python (Flask, Django, FastAPI). https://sveda.dev/docs/hosts/python"
 readme = "README.md"
 license = { text = "AGPL-3.0-only" }
