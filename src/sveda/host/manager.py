@@ -9,6 +9,7 @@ import httpx
 from sveda.client import SvedaClient
 from sveda.exceptions import APIError, AuthenticationError, TransportError
 from sveda.host.constants import DEFAULT_MCP_ABILITY, DEFAULT_MCP_PATH
+from sveda.host.manifest import build_host_manifest
 from sveda.host.token_store import McpTokenStore
 
 
@@ -122,6 +123,9 @@ class HostManager:
     def after_authenticate(self, user: Any) -> None:
         if self._after_authenticate_using is not None:
             self._after_authenticate_using(user)
+
+    def describe(self, user: Any = None) -> dict[str, Any]:
+        return build_host_manifest(self, user)
 
     def resolve_tools(self, user: Any = None) -> list[Any]:
         if self._resolve_tools_using is None:
