@@ -1,3 +1,5 @@
+from sveda._version import __version__
+
 from sveda.client import SvedaClient
 from sveda.exceptions import (
     APIError,
@@ -45,6 +47,5 @@ __all__ = [
     "process_host_mcp_http",
     "read_bearer_token",
     "start_host_session",
+    "__version__",
 ]
-
-__version__ = "0.4.0"
