@@ -46,7 +46,7 @@ class HostManifestTest(unittest.TestCase):
             user=user,
             headers={},
         )
-        by_name = {tool["name"]: tool for tool in listed["result"]["tools"]}
+        by_name = {tool["name"]: tool for tool in listed["body"]["result"]["tools"]}
 
         for tool in manifest["tools"]:
             self.assertIn(tool["name"], by_name)
