@@ -89,6 +89,7 @@ class HostMcpTest(unittest.TestCase):
         )
         self.assertEqual(tool["_meta"]["domain"], "demo")
         self.assertEqual(tool["_meta"]["mode"], "read")
+        self.assertNotIn("confirmation", tool["_meta"])
 
         called = mcp_request(
             host,
@@ -101,6 +102,26 @@ class HostMcpTest(unittest.TestCase):
         self.assertFalse(called["body"]["result"]["isError"])
         text = called["body"]["result"]["content"][0]["text"]
         self.assertEqual(json.loads(text)["data"]["message"], "hello")
+
+    def test_confirmation_meta_is_published_when_required(self) -> None:
+        class DeleteTool(EchoHostTool):
+            def name(self) -> str:
+                return "delete_post"
+
+            def mode(self) -> str:
+                return "delete"
+
+            def confirmation(self) -> str:
+                return "required"
+
+        host = HostManager()
+        host.resolve_tools_using(lambda: [EchoHostTool(), DeleteTool()])
+        token = host.default_mint_mcp_token({"id": "user-1"})
+        listed = mcp_request(host, token, "tools/list", {"per_page": 250})
+        tools = {tool["name"]: tool for tool in listed["body"]["result"]["tools"]}
+        self.assertNotIn("confirmation", tools["echo_message"]["_meta"])
+        self.assertEqual(tools["delete_post"]["_meta"]["confirmation"], "required")
+        self.assertEqual(tools["delete_post"]["_meta"]["mode"], "delete")
 
     def test_host_manager_start_session_sends_mcp_credentials(self) -> None:
         captured: dict[str, object] = {}

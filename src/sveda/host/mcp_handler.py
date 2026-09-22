@@ -21,19 +21,30 @@ def _tool_attr(tool: Any, name: str, default: str = "") -> str:
     return value() if callable(value) else str(value or default)
 
 
+def _confirmation(tool: Any) -> str | None:
+    value = getattr(tool, "confirmation", None)
+    if callable(value):
+        value = value()
+    return "required" if value == "required" else None
+
+
 def _to_mcp_tool(tool: Any) -> dict[str, Any]:
     name = _tool_attr(tool, "name")
     mode = _tool_attr(tool, "mode", "read")
+    meta: dict[str, Any] = {
+        "domain": _tool_attr(tool, "domain", "other"),
+        "mode": mode,
+    }
+    confirmation = _confirmation(tool)
+    if confirmation:
+        meta["confirmation"] = confirmation
     return {
         "name": name,
         "title": name,
         "description": _tool_attr(tool, "description"),
         "inputSchema": build_input_schema(tool),
         "annotations": tool_annotations(mode),
-        "_meta": {
-            "domain": _tool_attr(tool, "domain", "other"),
-            "mode": mode,
-        },
+        "_meta": meta,
     }
 
 
