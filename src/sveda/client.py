@@ -156,6 +156,8 @@ class EmbedResource:
         *,
         host_mcp_url: str | None = None,
         host_mcp_token: str | None = None,
+        policy: str | None = None,
+        grants: dict[str, Any] | None = None,
     ) -> EmbedToken:
         payload: dict[str, Any] = {}
         if visitor_id:
@@ -163,6 +165,10 @@ class EmbedResource:
         if host_mcp_url and host_mcp_token:
             payload["host_mcp_url"] = host_mcp_url
             payload["host_mcp_token"] = host_mcp_token
+        if policy is not None and str(policy).strip() != "":
+            payload["policy"] = str(policy).strip()
+        if grants is not None:
+            payload["grants"] = grants
         return EmbedToken.from_dict(
             self._client.request_json("POST", "/sveda/embed/token", payload)
         )

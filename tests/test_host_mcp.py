@@ -184,6 +184,84 @@ class HostMcpTest(unittest.TestCase):
         self.assertEqual(status, 401)
         self.assertEqual(body, b"unauthorized")
 
+    def test_start_session_sends_policy(self) -> None:
+        captured: dict[str, object] = {}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            captured["body"] = json.loads(request.content)
+            return httpx.Response(
+                200,
+                json={
+                    "token": "sveda_embed_test.token",
+                    "visitor_id": "host-1",
+                    "expires_in": 3600,
+                },
+            )
+
+        host = HostManager(
+            base_url="http://127.0.0.1:8787",
+            host_api_key="host-secret",
+            mcp_url="https://app.test/mcp/sveda",
+            http_client=httpx.Client(transport=httpx.MockTransport(handler)),
+        )
+        host.resolve_tools_using(lambda: [EchoHostTool()])
+        host.policy_using(lambda user: "reader")
+
+        session = host.start_session({"id": 1})
+        self.assertEqual(session["token"], "sveda_embed_test.token")
+        body = captured["body"]
+        assert isinstance(body, dict)
+        self.assertEqual(body["policy"], "reader")
+
+    def test_resolve_tools_receives_user_and_filters_tools_call(self) -> None:
+        host = HostManager()
+        seen: list[object] = []
+
+        def resolve(user):
+            seen.append(user)
+            if isinstance(user, dict) and user.get("id") == "user-1":
+                return [EchoHostTool()]
+            return []
+
+        host.resolve_tools_using(resolve)
+
+        listed = mcp_request(host, "token", "tools/list", {"per_page": 250})
+        self.assertEqual(listed["status"], 200)
+        self.assertEqual(seen[-1], {"id": "user-1"})
+        names = [tool["name"] for tool in listed["body"]["result"]["tools"]]
+        self.assertEqual(names, ["echo_message"])
+
+        denied_user_call = handle_host_mcp_request(
+            host,
+            {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "method": "tools/call",
+                "params": {"name": "echo_message", "arguments": {"message": "nope"}},
+            },
+            user={"id": "other"},
+        )
+        self.assertTrue(denied_user_call["body"]["result"]["isError"])
+        self.assertIn("Unknown tool", denied_user_call["body"]["result"]["content"][0]["text"])
+
+    def test_zero_arg_resolve_tools_callback_still_works(self) -> None:
+        host = HostManager()
+        host.resolve_tools_using(lambda: [EchoHostTool()])
+
+        listed = mcp_request(host, "token", "tools/list", {"per_page": 250})
+        self.assertEqual(listed["status"], 200)
+        names = [tool["name"] for tool in listed["body"]["result"]["tools"]]
+        self.assertEqual(names, ["echo_message"])
+
+        called = mcp_request(
+            host,
+            "token",
+            "tools/call",
+            {"name": "echo_message", "arguments": {"message": "hello"}},
+            id_=2,
+        )
+        self.assertFalse(called["body"]["result"]["isError"])
+
 
 if __name__ == "__main__":
     unittest.main()

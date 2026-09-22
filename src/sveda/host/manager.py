@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 from collections.abc import Callable
 from typing import Any
 
@@ -13,6 +14,34 @@ from sveda.host.token_store import McpTokenStore
 
 def _trim_slash(value: str) -> str:
     return str(value or "").rstrip("/")
+
+
+def _invoke_tools_callback(callback: Callable[..., list[Any]], user: Any) -> list[Any]:
+    if user is None:
+        return callback()
+    try:
+        signature = inspect.signature(callback)
+    except (TypeError, ValueError):
+        try:
+            return callback(user)
+        except TypeError:
+            return callback()
+
+    accepts_user = False
+    for parameter in signature.parameters.values():
+        if parameter.kind in (
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        ):
+            accepts_user = True
+            break
+        if parameter.kind == inspect.Parameter.VAR_POSITIONAL:
+            accepts_user = True
+            break
+
+    if accepts_user:
+        return callback(user)
+    return callback()
 
 
 class HostManager:
@@ -51,7 +80,8 @@ class HostManager:
 
         self._authorize_using: Callable[[Any], bool] | None = None
         self._after_authenticate_using: Callable[[Any], None] | None = None
-        self._resolve_tools_using: Callable[[], list[Any]] | None = None
+        self._resolve_tools_using: Callable[..., list[Any]] | None = None
+        self._policy_using: Callable[[Any], Any] | None = None
         self._visitor_id_using: Callable[[Any], str] | None = None
         self._mint_token_using: Callable[[Any], str] | None = None
         self._verify_bearer_token_using: Callable[[str], Any] | None = None
@@ -64,8 +94,12 @@ class HostManager:
         self._after_authenticate_using = callback
         return self
 
-    def resolve_tools_using(self, callback: Callable[[], list[Any]]) -> HostManager:
+    def resolve_tools_using(self, callback: Callable[..., list[Any]]) -> HostManager:
         self._resolve_tools_using = callback
+        return self
+
+    def policy_using(self, callback: Callable[[Any], Any]) -> HostManager:
+        self._policy_using = callback
         return self
 
     def visitor_id_using(self, callback: Callable[[Any], str]) -> HostManager:
@@ -89,10 +123,10 @@ class HostManager:
         if self._after_authenticate_using is not None:
             self._after_authenticate_using(user)
 
-    def resolve_tools(self) -> list[Any]:
+    def resolve_tools(self, user: Any = None) -> list[Any]:
         if self._resolve_tools_using is None:
             return []
-        tools = self._resolve_tools_using()
+        tools = _invoke_tools_callback(self._resolve_tools_using, user)
         if not isinstance(tools, list):
             return []
         return [
@@ -104,6 +138,15 @@ class HostManager:
                 or isinstance(getattr(tool, "name", None), str)
             )
         ]
+
+    def policy_for(self, user: Any) -> str | None:
+        if self._policy_using is None:
+            return None
+        value = self._policy_using(user)
+        if value is None:
+            return None
+        policy = str(value).strip()
+        return policy or None
 
     def visitor_id(self, user: Any) -> str:
         if self._visitor_id_using is not None:
@@ -165,6 +208,7 @@ class HostManager:
                     visitor_id=visitor_id,
                     host_mcp_url=host_mcp_url,
                     host_mcp_token=mcp_token,
+                    policy=self.policy_for(user),
                 )
         except (AuthenticationError, TransportError, APIError) as exc:
             raise APIError(

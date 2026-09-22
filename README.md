@@ -64,7 +64,8 @@ host = HostManager(
     server_name="My App",
     instructions="Tools for the signed-in user.",
 )
-host.resolve_tools_using(lambda: [SearchPostsTool()])
+host.resolve_tools_using(lambda user: [SearchPostsTool()])
+host.policy_using(lambda user: "agent")
 
 register_host_mcp(app, host)
 

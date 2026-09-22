@@ -128,7 +128,7 @@ def handle_host_mcp_request(
             250,
             max(1, int(params.get("per_page") or params.get("perPage") or 250)),
         )
-        tools = [_to_mcp_tool(tool) for tool in host.resolve_tools()]
+        tools = [_to_mcp_tool(tool) for tool in host.resolve_tools(user)]
         cursor = str(params.get("cursor") or "")
         start = 0 if cursor == "" else int(cursor)
         slice_ = tools[start : start + per_page]
@@ -144,7 +144,11 @@ def handle_host_mcp_request(
         if not isinstance(arguments, dict):
             arguments = {}
         tool = next(
-            (candidate for candidate in host.resolve_tools() if _tool_attr(candidate, "name") == name),
+            (
+                candidate
+                for candidate in host.resolve_tools(user)
+                if _tool_attr(candidate, "name") == name
+            ),
             None,
         )
         if tool is None:
