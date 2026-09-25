@@ -117,4 +117,4 @@ python -m sveda.describe myapp.sveda_host:sveda_host
 
 ## License
 
-GNU Affero General Public License v3.0. See [LICENSE](LICENSE).
+Apache License 2.0. See [LICENSE](LICENSE).
